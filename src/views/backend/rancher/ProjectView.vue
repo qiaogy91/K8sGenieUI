@@ -9,8 +9,10 @@
           allow-clear
         >
           <a-option value="1">查询所有</a-option>
-          <a-option value="2">项目编码</a-option>
+          <a-option value="2">集群编码</a-option>
           <a-option value="3">项目产线</a-option>
+          <a-option value="4">项目编码</a-option>
+          <a-option value="5">项目描述</a-option>
         </a-select>
       </div>
 
@@ -31,14 +33,14 @@
       </div>
 
       <div>
-        <a-button type="primary" class="sync" @click="drawerOpen">执行同步</a-button>
+        <a-button type="primary" class="sync" @click="drawerOpen" :loading="data.loading">执行同步</a-button>
       </div>
     </a-space>
   </div>
   <div class="content">
     <a-table :columns="data.tableColumns" :data="data.tableData">
       <template #optional="{ record }">
-        <a-button @click="userView(record.users)">查看</a-button>
+        <a-button @click="userView(record)" type="outline">查看</a-button>
       </template>
     </a-table>
   </div>
@@ -46,35 +48,41 @@
   <div>
     <a-modal v-model:visible="data.userVisible" @ok="handleOk" @cancel="handleOk">
       <template #title> Title</template>
-      <div v-for="item in data.userCurrent.split(',')" :key="item">
-        {{ item }}
-      </div>
+      项目：{{data.recordCurrent.project_id}}<br>
+      用户：{{data.recordCurrent.users}}
     </a-modal>
   </div>
 
   <!-- 抽屉 -->
   <div>
     <a-drawer
-      :width="340"
-      :height="340"
+      :width="800"
+      :height="500"
       :visible="data.DrawerVisible"
       placement="top"
+      :maskClosable="false"
       @ok="drawerClose"
       @cancel="drawerClose"
-      unmountOnClose
+      :unmountOnClose="false"
+      :hide-cancel="true"
+      :ok-loading="data.loading"
+      :esc-to-close="false"
     >
-      <template #title> Title</template>
-      <div>
-        You can customize modal body text by the current situation. This modal will be closed
-        immediately once you press the OK button.
+      <template #title> 数据同步中...</template>
+      <div id="term">
       </div>
     </a-drawer>
   </div>
 </template>
 <script setup>
 import { PROJECT_LIST, PROJECT_QUERY } from '@/api/rancher.js'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive } from 'vue'
 import { Message } from '@arco-design/web-vue'
+import {Terminal, } from '@xterm/xterm'
+import "@xterm/xterm/css/xterm.css";
+
+import {getTermSize, Solarized_Darcula} from '@/views/backend/term.js'
+
 
 const data = reactive({
   tableColumns: [
@@ -92,15 +100,52 @@ const data = reactive({
 
   // 模态框：查看用户信息
   userVisible: false,
-  userCurrent: '',
+  recordCurrent: {},
 
   // 抽屉：同步项目资源
-  DrawerVisible: false
+  DrawerVisible: false,
+  loading: false,
 })
 
-// TODO 数据同步
 const drawerOpen = () => {
   data.DrawerVisible = true
+  data.syncAgain = false
+  data.loading = true
+
+  setTimeout(()=>{
+    let term = new Terminal({
+      theme: Solarized_Darcula,
+      fontSize: 13,
+      convertEol: true,
+      disableStdin: true,
+    });
+
+    term.open(document.getElementById('term'));
+    const fitSize = () => {
+      let geometry = getTermSize(term)
+      term.resize(geometry.cols, geometry.rows)
+    }
+    // 终端大小调整
+    window.onresize = fitSize()
+
+    // const socket = new WebSocket(`ws://${window.location.host}/api/v1/K8sGenie/rancher/sync`);
+    const socket = new WebSocket("ws://127.0.0.1:8081/api/v1/K8sGenie/rancher/sync", )
+
+    socket.onmessage = (data)=>{
+      console.log(data.data)
+      term.write(data.data)
+    }
+    socket.onerror = (err)=>{
+      console.log('@@@@', err)
+      term.write(err)
+    }
+    socket.onclose = ()=>{
+      console.log('close')
+      data.loading = false
+    }
+  }, 1000)
+
+
 
 }
 const drawerClose = () => {
@@ -113,7 +158,7 @@ const project_query = async () => {
   try {
     let rsp = await PROJECT_QUERY(data.queryType, data.queryKeyword)
 
-    console.log(rsp.data)
+    console.log(rsp)
     if (rsp.data.items && rsp.data.items.length > 0) {
       data.tableData = []
       rsp.data.items.forEach((item, idx) => {
@@ -121,6 +166,7 @@ const project_query = async () => {
         let project = {
           key: idx,
           idx: idx,
+          project_id: item.spec.project_id,
           updated_at: utime.toLocaleString(),
           cluster_name: item.spec.cluster_name,
           project_code: item.spec.project_code,
@@ -142,7 +188,7 @@ const handleOk = () => {
   data.modelVisible = false
 }
 const userView = (record) => {
-  data.userCurrent = record
+  data.recordCurrent = record
   data.userVisible = true
 }
 
@@ -158,6 +204,7 @@ const project_lst = async () => {
         let project = {
           key: idx,
           idx: idx,
+          project_id: item.spec.project_id,
           updated_at: utime.toLocaleString(),
           cluster_name: item.spec.cluster_name,
           project_code: item.spec.project_code,

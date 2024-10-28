@@ -35,7 +35,7 @@ instance.interceptors.response.use(
       default:
         // 其他情况优先使用后端API返回的错误消息；没有的话则用 axios 返回的消息
         if (err.response.data) {
-          return Promise.reject(err.response.data)
+          return Promise.reject(err.response)
         }
         return Promise.reject(err.message)
     }

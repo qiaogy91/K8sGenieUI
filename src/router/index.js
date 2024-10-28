@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import DashboardView from '@/views/backend/dashboard/DashboardView.vue'
 import {beforeEachHandler, afterEchHandler} from '@/router/permission.js'
 
 const router = createRouter({
@@ -7,8 +7,8 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      name: 'dashboard',
+      component: DashboardView
     },
     {
       path: '/login',
@@ -22,6 +22,12 @@ const router = createRouter({
       meta: { auth: true, title: 'backend' },
       component: () => import('@/views/backend/LayoutView.vue'),
       children: [
+        {
+          name: 'dashboard',
+          path: 'dashboard',
+          meta: { auth: true, title: '用户管理' },
+          component: () => import('@/views/backend/dashboard/DashboardView.vue')
+        },
         {
           name: 'user',
           path: 'user',
@@ -45,7 +51,25 @@ const router = createRouter({
           path: 'router',
           meta: { auth: true, title: '路由管理' },
           component: () => import('@/views/backend/Router/RouterView.vue')
-        }
+        },
+        {
+          name: 'clusterRecord',
+          path: 'clusterRecord',
+          meta: { auth: true, title: '项目管理' },
+          component: () => import('@/views/backend/record/ClusterView.vue')
+        },
+        {
+          name: 'namespaceRecord',
+          path: 'namespaceRecord',
+          meta: { auth: true, title: '项目管理' },
+          component: () => import('@/views/backend/record/NamespaceView.vue')
+        },
+        {
+          name: 'projectRecord',
+          path: 'projectRecord',
+          meta: { auth: true, title: '项目管理' },
+          component: () => import('@/views/backend/record/ProjectView.vue')
+        },
       ]
     },
 

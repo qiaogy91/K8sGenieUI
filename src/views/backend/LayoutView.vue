@@ -46,15 +46,14 @@
       </a-layout-header>
 
       <a-layout style="padding: 0 24px;">
-        <a-breadcrumb :style="{ margin: '16px 0' }">
-          <a-breadcrumb-item>Home</a-breadcrumb-item>
-          <a-breadcrumb-item>List</a-breadcrumb-item>
-          <a-breadcrumb-item>App</a-breadcrumb-item>
-        </a-breadcrumb>
-        <a-layout-content>
+<!--        <a-breadcrumb :style="{ margin: '16px 0' }">-->
+<!--          <a-breadcrumb-item>Home</a-breadcrumb-item>-->
+<!--          <a-breadcrumb-item>List</a-breadcrumb-item>-->
+<!--          <a-breadcrumb-item>App</a-breadcrumb-item>-->
+<!--        </a-breadcrumb>-->
+        <a-layout-content style="margin-top: 10px">
           <router-view></router-view>
         </a-layout-content>
-        <a-layout-footer>Footer</a-layout-footer>
       </a-layout>
     </a-layout>
   </a-layout>
@@ -79,7 +78,9 @@ const username = store.userName
 const data = reactive({
   menuArr: [
     {
-      id: 1, title: "信息面板", url: "", children: []
+      id: 1, title: "信息面板", url: "dashboard", children: [
+
+      ]
     },
     {
       id: 2, title: "项目管理", url: "project", children: []
@@ -92,6 +93,19 @@ const data = reactive({
     },
     {
       id: 5, title: "路由管理", url: "router", children: []
+    },
+    {
+      id: 6, title: "数据报表", url: "", children: [
+        {
+          id: 61, title: "集群产线", url: "clusterRecord", children: []
+        },
+        {
+          id: 62, title: "产线项目", url: "projectRecord", children: []
+        },
+        {
+          id: 63, title: "项目详细", url: "namespaceRecord", children: []
+        },
+      ]
     },
   ]
 })
