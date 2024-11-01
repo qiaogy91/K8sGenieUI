@@ -69,7 +69,7 @@ const store = useLocalStore()
 const router = useRouter()
 
 const onClickMenuItem = (key) => {
-  Message.info({content: `You select ${key}`, showIcon: true});
+  // Message.info({content: `You select ${key}`, showIcon: true});
   router.push({ name: key })
 }
 

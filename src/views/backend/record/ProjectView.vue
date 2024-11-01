@@ -13,7 +13,7 @@
             <a-option value="itcp-k8s-uat">itcp-k8s-uat</a-option>
             <a-option value="itcp-k8s-prd">itcp-k8s-prd</a-option>
             <a-option value="itcp-k8s-xc-uat">itcp-k8s-xc-uat</a-option>
-            <a-option value="itcp-k8s-xc-uat">itcp-k8s-xc-prd</a-option>
+            <a-option value="itcp-k8s-xc-prd">itcp-k8s-xc-prd</a-option>
           </a-select>
         </a-space>
         <a-space direction="vertical" size="large">
@@ -47,7 +47,7 @@
   </div>
 
   <div style="margin: 10px">
-    <a-table :columns="data.tableColumns" :data="data.tableData" :pagination="pagination"/>
+    <a-table :columns="data.tableColumns" :data="data.tableData"/>
   </div>
 </template>
 <script setup>
@@ -56,11 +56,6 @@ import { IconSearch } from '@arco-design/web-vue/es/icon/index.js'
 import { reactive, ref } from 'vue'
 import { PROJECT_RECORD } from '@/api/record.js'
 
-const pagination = ref({
-  pageSize: 30,    // 设置默认每页显示 10 条
-  current: 1,      // 设置当前页码为 1
-  showTotal: true, // 显示总数
-});
 
 const data = reactive({
   search: {
@@ -75,7 +70,8 @@ const data = reactive({
     { title: '产线名称', dataIndex: 'line' },
     { title: '项目名称', dataIndex: 'project_desc' },
     { title: '项目编码', dataIndex: 'project_code' },
-    { title: '用量权重', dataIndex: 'weight' }
+    { title: '用量权重', dataIndex: 'weight' },
+    { title: '用量占比', dataIndex: 'percent' },
   ],
   tableData: []
 })
@@ -96,6 +92,7 @@ const search = async () => {
       project_desc: item.project_wight.project_desc,
       project_code: item.project_wight.project_code,
       weight: item.project_wight.weight,
+      percent: item.project_wight.percent,
     }
     data.tableData.push(dic)
   })

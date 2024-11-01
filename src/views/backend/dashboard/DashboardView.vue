@@ -141,7 +141,7 @@ const clusterDashboardSearch = async ()=>{
 
   res.data.forEach((item) => {
     let dic = {
-      value: item.weight,
+      value: item.percent,
       name: item.project_line,
     }
     clusterDashboard.series[0].data.push(dic)
@@ -184,7 +184,7 @@ const projectDashboardSearch = async ()=>{
   res.data.forEach((item) => {
     let dic = {
       name: item.project_wight.project_code,
-      value: item.project_wight.weight,
+      value: item.project_wight.percent,
     }
     projectDashboard.series[0].data.push(dic)
   })

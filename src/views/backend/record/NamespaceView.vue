@@ -53,7 +53,7 @@
   </div>
 
   <div style="margin: 10px">
-    <a-table :columns="data.tableColumns" :data="data.tableData" :pagination="pagination"/>
+    <a-table :columns="data.tableColumns" :data="data.tableData" />
   </div>
 </template>
 <script setup>
@@ -63,12 +63,6 @@ import { IconSearch } from '@arco-design/web-vue/es/icon/index.js'
 import { reactive, ref } from 'vue'
 import { NAMESPACE_RECORD } from '@/api/record.js'
 
-
-const pagination = ref({
-  pageSize: 30,    // 设置默认每页显示 10 条
-  current: 1,      // 设置当前页码为 1
-  showTotal: true, // 显示总数
-});
 
 
 const data = reactive({
@@ -87,7 +81,8 @@ const data = reactive({
     { title: '项目名称', dataIndex: 'project_desc' },
     { title: '项目编码', dataIndex: 'project_code' },
     { title: '名称空间', dataIndex: 'namespace' },
-    { title: '用量权重', dataIndex: 'weight' }
+    { title: '用量权重', dataIndex: 'weight' },
+    { title: '用量占比', dataIndex: 'percent' },
   ],
   tableData: []
 })
@@ -107,8 +102,8 @@ const search = async () => {
       project_desc: item.project_desc,
       project_code: item.project_code,
       namespace: item.namespace_wight.namespace,
-
       weight: item.namespace_wight.weight,
+      percent: item.namespace_wight.percent,
     }
     data.tableData.push(dic)
   })

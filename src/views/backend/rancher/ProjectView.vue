@@ -128,8 +128,8 @@ const drawerOpen = () => {
     // 终端大小调整
     window.onresize = fitSize()
 
-    // const socket = new WebSocket(`ws://${window.location.host}/api/v1/K8sGenie/rancher/sync`);
-    const socket = new WebSocket("ws://127.0.0.1:8081/api/v1/K8sGenie/rancher/sync", )
+    const socket = new WebSocket(`ws://${window.location.host}/api/v1/K8sGenie/rancher/sync`);
+    // const socket = new WebSocket("ws://127.0.0.1:8081/api/v1/K8sGenie/rancher/sync", )
 
     socket.onmessage = (data)=>{
       console.log(data.data)
