@@ -53,7 +53,7 @@
       </template>
       <template #urgent="{ record }">
         <a-space size="large">
-          <a-switch v-model="record.urgent_call" @change="urgentChange" />
+          <a-switch v-model="record.urgent_call" @change="urgentChange(record)"  />
         </a-space>
       </template>
     </a-table>
@@ -123,7 +123,7 @@
 
               <a-space>
                 <div v-for="(item,index) in data.routeData.users" :key="index">
-                  <a-tag closable>{{item.username}}-{{item.phone}}</a-tag>
+                  <a-tag closable @close="popTempUser(item)">{{item.username}}-{{item.phone}}</a-tag>
                 </div>
               </a-space>
             </a-form-item>
@@ -140,9 +140,10 @@
 <script setup>
 import { onMounted, reactive } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { ROUTE_CREATE, ROUTE_DELETE, ROUTE_QUERY } from '@/api/route.js'
+import { ROUTE_CREATE, ROUTE_DELETE, ROUTE_QUERY, ROUTE_UPDATE, ROUTE_URGENT } from '@/api/route.js'
 
 const data = reactive({
+  updateRouteId: undefined,
   queryType: undefined,
   queryKeyword: '',
   tableColumns: [
@@ -179,6 +180,11 @@ const addTempUser = async () =>{
   }
 }
 
+const popTempUser = async (item) =>{
+  console.log(item)
+  data.routeData.users = data.routeData.users.filter(user => user.username !== item.username || user.phone !== item.phone);
+}
+
 const routeQuery = async (t, k) => {
   try {
     let rsp = await ROUTE_QUERY(t, k)
@@ -186,7 +192,6 @@ const routeQuery = async (t, k) => {
     data.tableData = []
     if (rsp.data.items && rsp.data.items.length > 0) {
       rsp.data.items.forEach((item, idx) => {
-        console.log(item)
         let ctime = new Date(item.meta.created_at * 1000)
         let r = {
           idx: idx,
@@ -213,8 +218,17 @@ const routeQuery = async (t, k) => {
 
 const route_create = async () => {
   try {
-    await ROUTE_CREATE(data.routeData)
-    Message.success('创建成功')
+
+    if (data.updateRouteId) {
+      await ROUTE_UPDATE(data.updateRouteId, data.routeData)
+      Message.success('更新成功')
+    }else {
+      await ROUTE_CREATE(data.routeData)
+      Message.success('创建成功')
+    }
+
+
+
   } catch (err) {
     Message.error(err)
     console.log(err)
@@ -233,8 +247,9 @@ const route_delete = async (id) => {
 }
 
 
+// 详情查看、路由更新
 const route_desc = async (id) =>{
-  // todo   create_update
+  data.updateRouteId = id
   try {
     let rsp = await ROUTE_QUERY(4, id)
     data.routeData = rsp.data.items[0].spec
@@ -256,9 +271,17 @@ onMounted(() => {
   routeQuery('1', '')
 })
 
-const urgentChange = async (e) => {
-  console.log(e)
+const urgentChange = async (r) => {
+  console.log(r.metaId, r.urgent_call)
+
+  try {
+    await ROUTE_URGENT({"id": r.metaId.toString(), "urgent_call": r.urgent_call})
+    Message.success("操作成功")
+  }catch (err) {
+    console.log(err)
+  }
 }
+
 </script>
 
 <style scoped>

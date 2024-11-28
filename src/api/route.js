@@ -13,3 +13,12 @@ export const ROUTE_CREATE = (data)=>{
 export const ROUTE_DELETE = (id) =>{
   return instance.delete(`K8sGenie/router/${id}`)
 }
+
+export const ROUTE_UPDATE = (id, data) =>{
+  return instance.put(`K8sGenie/router/${id}`, data)
+}
+
+
+export const ROUTE_URGENT = (data) =>{
+  return instance.post(`K8sGenie/router/UrgentChange`, data)
+}
