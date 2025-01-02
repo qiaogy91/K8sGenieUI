@@ -1,26 +1,22 @@
 <template>
   <div class="header">
-    <a-space>
-      <div width="200px">
+    <a-row :size="24">
+      <a-col :span="2">
         <a-button type="primary" :loading="false" @click="data.modelVisible = true">
           <template #icon>
             <icon-plus />
           </template>
           Click Me
         </a-button>
-      </div>
-
-      <div style="display: flex; flex-grow: 1">
-        <div>
-          <a-select v-model="data.queryType" placeholder="select ..." allow-clear>
-            <a-option value="1">查询所有</a-option>
-            <a-option value="4">项目编码</a-option>
-            <a-option value="2">名称空间</a-option>
-            <a-option value="3">负载名称</a-option>
-          </a-select>
-        </div>
-
-        <div>
+      </a-col>
+      <a-col :span="21">
+        <a-space>
+            <a-select v-model="data.queryType" placeholder="select ..." allow-clear>
+              <a-option value="1">查询所有</a-option>
+              <a-option value="2">集群编码</a-option>
+              <a-option value="3">产线名称</a-option>
+              <a-option value="4">项目ID</a-option>
+            </a-select>
           <a-input-search
             :style="{ width: '320px' }"
             placeholder="Please enter"
@@ -34,8 +30,24 @@
             </template>
             <template #button-default> Search</template>
           </a-input-search>
+        </a-space>
+      </a-col>
+      <a-col :span="1">
+        <div style="align-self: flex-end">
+          <json-excel
+            :data="data.tableData"
+            name="data.xlsx"
+          >
+            <a-button type="primary"><template #icon><icon-download /></template></a-button>
+          </json-excel>
         </div>
-      </div>
+      </a-col>
+
+    </a-row>
+    <a-space>
+
+
+
     </a-space>
   </div>
 
@@ -144,12 +156,13 @@ import { ROUTE_CREATE, ROUTE_DELETE, ROUTE_QUERY, ROUTE_UPDATE, ROUTE_URGENT } f
 
 const data = reactive({
   updateRouteId: undefined,
-  queryType: undefined,
+  queryType: "1",
   queryKeyword: '',
   tableColumns: [
     { title: '序号', dataIndex: 'idx' },
-    { title: '创建时间', dataIndex: 'created_at' },
-    { title: '告警目标', dataIndex: 'identity' },
+    { title: '更新时间', dataIndex: 'updated_at' },
+    { title: '告警目标 / 项目ID', dataIndex: 'identity' },
+    { title: '所属集群', dataIndex: 'cluster_name' },
     { title: '所属产线', dataIndex: 'project_line' },
     { title: '所属项目', dataIndex: 'project_desc' },
     { title: '项目编码', dataIndex: 'project_code' },
@@ -173,6 +186,9 @@ const data = reactive({
 })
 
 const addTempUser = async () =>{
+  if (!data.routeData.users) {
+    data.routeData.users = []
+  }
   data.routeData.users.push(data.tempUser)
   data.tempUser = {
     username: '',
@@ -188,23 +204,33 @@ const popTempUser = async (item) =>{
 const routeQuery = async (t, k) => {
   try {
     let rsp = await ROUTE_QUERY(t, k)
-
     data.tableData = []
     if (rsp.data.items && rsp.data.items.length > 0) {
       rsp.data.items.forEach((item, idx) => {
-        let ctime = new Date(item.meta.created_at * 1000)
+        // let ctime = new Date(item.meta.created_at * 1000)
+        let utime = new Date(item.meta.updated_at * 1000)
+
+
         let r = {
           idx: idx,
-          created_at: ctime.toLocaleString(),
+          // created_at: ctime.toLocaleString(),
+          updated_at: utime.toLocaleString(),
           identity: item.spec.identity,
           webhook_token: item.spec.webhook_token,
-          webhook_url: item.spec.webhook_url,
-          urgent_call: item.spec.urgent_call
+          webhook_url: item.spec.webhook_url.split('/').pop(),
+          urgent_call: item.spec.urgent_call,
+          cluster_name: "",
+          project_line: "",
+          project_code: "",
+          project_desc: "",
+
         }
         if (item.spec.project_spec) {
+          r.cluster_name = item.spec.project_spec.cluster_name
           r.project_line = item.spec.project_spec.project_line
           r.project_code = item.spec.project_spec.project_code
           r.project_desc = item.spec.project_spec.project_desc
+
         }
         r.metaId = item.meta.id
         data.tableData.push(r)
@@ -214,6 +240,7 @@ const routeQuery = async (t, k) => {
     console.log(err)
     Message.error(err)
   }
+
 }
 
 const route_create = async () => {
@@ -221,7 +248,16 @@ const route_create = async () => {
 
     if (data.updateRouteId) {
       await ROUTE_UPDATE(data.updateRouteId, data.routeData)
+      // 重置数据
+      data.routeData =  {
+        identity: '',
+          webhook_url: '',
+          webhook_token: '',
+          urgent_call: false,
+          users: []
+      }
       Message.success('更新成功')
+      // data.updateRouteId = undefined
     }else {
       await ROUTE_CREATE(data.routeData)
       Message.success('创建成功')
@@ -287,7 +323,7 @@ const urgentChange = async (r) => {
 <style scoped>
 .header {
   padding: 10px;
-  display: flex;
+  //display: flex;
 }
 
 .content {
